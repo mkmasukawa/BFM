@@ -71,19 +71,30 @@ def particle_coordinates(bond_matrix):
     z_len = len(bond_matrix[0][0])
     scalars, connections = [], []
     x = []
+    colors = []
     for i in range(x_len):
         for j in range(y_len):
             for k in range(z_len):
-                a = bond_matrix[i][j][k]
-                if a != 0:
-                    m_d = split_info(a, i, j, k)
+                cell = bond_matrix[i][j][k]
+                if cell != 0:
+                    m_d = split_info(cell, i, j, k)
+                    monomer_type = m_d["type"]
                     m_d.pop("type")
                     for m in m_d:
                         # if (i, j, k) not in x:
                         x.append((i, j, k))
                         x.append((i + m[0], j + m[1], k + m[2]))
-                        scalars.append(1)
-                        scalars.append(1)
+                        # scalars.append(1)
+                        if monomer_type == 1:
+                            # colors.append((1, 0, 0))
+                            scalars.append(0.25)
+                        if monomer_type == 2:
+                            # colors.append((0, 1, 0))
+                            scalars.append(0.5)
+                        if monomer_type == 3:
+                            scalars.append(0.75)
+                            # colors.append((0, 0, 1))
+                        scalars.append(0.5)
 
     if x:
         connection_index = []
@@ -95,16 +106,18 @@ def particle_coordinates(bond_matrix):
 
         u, v, w = np.array(x).T
         scalars = np.array(scalars)
+
         return u, v, w, scalars, connection_index
 
 def animates(bond_matrix, max_steps):
     # View it.
     x, y, z, scalars, connections = particle_coordinates(bond_matrix)
-    l = mlab.points3d(10*x, 10*y, 10*z, scale_factor=5)
+    l = mlab.points3d(x * 10, y * 10, z * 10, 2 * scalars.max() - scalars,
+                        scale_factor=10, resolution=7, colormap="copper")
     l.mlab_source.dataset.lines = np.array(connections)
-    tube = mlab.pipeline.tube(l, tube_radius=1, tube_sides=3)
-    # tube.filter.radius_factor = 0.1
-    # tube.filter.vary_radius = 'vary_radius_by_scalar'
+    tube = mlab.pipeline.tube(l, tube_radius=0.0001, tube_sides=4)
+    tube.filter.radius_factor = 1
+    tube.filter.vary_radius = 'vary_radius_by_scalar'
     mlab.pipeline.surface(tube, color=(0.8, 0.8, 0))
 
     # Now animate the data.
@@ -120,8 +133,17 @@ def animates(bond_matrix, max_steps):
         while(i < max_steps):
             print(i)
             x, y , z, s, c = particle_coordinates(bond_matrix)
-            # chunk = Wrap(ms.set(x=10*x, y=10*y, z=10*z))
-            ms.set(x=10 * x, y=10 * y, z=10 * z)
+            ms.reset(x=10 * x, y=10 * y, z=10 * z, scalars=s)
+            ms.dataset.lines = np.array(c)
+
+
+            # l = mlab.points3d(x * 10, y * 10, z * 10, 2 * s.max() - s,
+            #                   scale_factor=10, resolution=7, colormap="copper")
+            # l.mlab_source.dataset.lines = np.array(c)
+            # tube = mlab.pipeline.tube(l, tube_radius=0.0001, tube_sides=4)
+            # tube.filter.radius_factor = 1
+            # tube.filter.vary_radius = 'vary_radius_by_scalar'
+            # mlab.pipeline.surface(tube, color=(0.8, 0.8, 0))
             # f.scene.render()
 
             # update_system(bond_matrix)
@@ -260,20 +282,28 @@ def update_positions_bonds(bond_matrix, i, j, k):
                 #check if it is bonded to type 2 already
                 #calculate here probability to break
                 bonded_to_type_2 = False
-                for b in current_mon:
-                    bonded_to_i = new_i + b[0]
-                    bonded_to_j = new_j + b[1]
-                    bonded_to_k = new_k + b[2]
+                for b_c_m in current_mon:
+                    bonded_to_i = new_i + b_c_m[0]
+                    bonded_to_j = new_j + b_c_m[1]
+                    bonded_to_k = new_k + b_c_m[2]
                     bonded_to = split_info(bond_matrix[bonded_to_i, bonded_to_j, bonded_to_k], bonded_to_i,
                                            bonded_to_j, bonded_to_k)
                     if bonded_to["type"] == 2:
                         bonded_to_type_2 = True
 
-
+                #can not bond again to type 2 if already bonded
                 if bonded_to_type_2 == True:
                     print("already bonded to type 2")
                     # calculate probability to break
+                    #check if there are free spaces around the double bond to create the type 3 monomers
+                    # spaces_around_new =
+                    #break the bond
+
+                    #create the new type 3 monomers
+
+
                 #not bonded to type 2 yet
+                #need to check if the candidate is not bonded already
                 else:
                     #calculate probability to bond
                     #check is there is a type 2 nearby
@@ -287,8 +317,14 @@ def update_positions_bonds(bond_matrix, i, j, k):
                             neighbor_mon = split_info(bond_matrix[neighbor_i, neighbor_j, neighbor_k], neighbor_i,
                                                       neighbor_j, neighbor_k)
                             if neighbor_mon["type"] == 2:
-                                neighbors_type2.append((neighbor_i, neighbor_j, neighbor_k))
-                                print("there is neighbor type 2")
+                                del neighbor_mon["type"]
+                                bonded_to_type_2 = False
+                                for b_n_m in neighbor_mon:
+                                    if str(bond_matrix[neighbor_i + b_n_m[0], neighbor_j + b_n_m[1], neighbor_k + b_n_m[2]])[-1] == "2":
+                                        bonded_to_type_2 = True
+                                if bonded_to_type_2 == False:
+                                    neighbors_type2.append((neighbor_i, neighbor_j, neighbor_k))
+                                    print("there is available neighbor type 2")
                             # if neighbor_mon["type"] == 3:
                             #     neighbors_type3.append((neighbor_i, neighbor_j, neighbor_k))
                             #     print("there is neighbor type 3")
@@ -319,13 +355,17 @@ def update_positions_bonds(bond_matrix, i, j, k):
                                                               chosen_type2[2]], chosen_type2[0],
                                                   chosen_type2[1], chosen_type2[2])
                         del bond_to_dict["type"]
-                        bonded_neighbor = str(3) + str(DICT_VECTOR_TO_INT[(-chosen_type2[0] + new_i, -chosen_type2[1] + new_j, -chosen_type2[2] + new_k)]) + str(2)
+                        bonded_neighbor = str(3) + str(DICT_VECTOR_TO_INT[(-chosen_type2[0] + new_i,
+                                                                           -chosen_type2[1] + new_j,
+                                                                           -chosen_type2[2] + new_k)]) + str(2)
                         for d in bond_to_dict:
                             # print(chosen_type2, d)
-                            if str(bond_matrix[chosen_type2[0]+d[0], chosen_type2[1]+d[1], chosen_type2[2]+d[2]])[-1] == "3":
+                            if str(bond_matrix[chosen_type2[0]+d[0], chosen_type2[1]+d[1],
+                                               chosen_type2[2]+d[2]])[-1] == "3":
                                 bond_matrix[chosen_type2[0] + d[0], chosen_type2[1] + d[1], chosen_type2[2] + d[2]] = 0
                             else:
-                                bonded_neighbor = str(bond_to_dict[d]) + str(DICT_VECTOR_TO_INT[d]).zfill(3) + bonded_neighbor
+                                bonded_neighbor = str(bond_to_dict[d]) \
+                                                  + str(DICT_VECTOR_TO_INT[d]).zfill(3) + bonded_neighbor
                         # print(bonded_neighbor)
                         #save dict to the matrix
                         bond_matrix[chosen_type2] = int(bonded_neighbor)
