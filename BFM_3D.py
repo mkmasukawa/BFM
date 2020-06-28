@@ -47,7 +47,7 @@ def generates_equilibrated_config():
 
 if __name__ == '__main__':
 
-    MCS_steps = 1000
+    MCS_steps = 10000
 
     f = h5py.File("/Users/marcosmasukawa/Documents/BFM_Simulation/empirical/2_pipeline/1small_equilibrated_config", "r")
     molecules_matrix = f.get("equilibrated_config").value
@@ -57,8 +57,8 @@ if __name__ == '__main__':
     # for i in range(MCS_steps):
     #     molecules_matrix = bfm.update_system_with_bonds(molecules_matrix)
     # bfm.plots_bonds(molecules_matrix)
-
-    #when show animation in real time
+    #
+    # when show animation in real time
     bfm.animates(molecules_matrix, MCS_steps)
 
     # generates_equilibrated_config()
@@ -67,3 +67,9 @@ if __name__ == '__main__':
     #depending on the monomer density, simplify each cell into only 4 x 4 x 4 units
 
 
+    # a = [[1.,1.,0],[0.,5.,3.]]
+    # b = [[0.,0.,0],[5.,3.,0], [0.,4.,0]]
+    #
+    # # l = [[10, 0.5, 0.5], [3, 0.5, 0.5]]
+    # # p = [[1.2, 0.0, 0.], [2.2, 1.0, 0.], [2.8, 0.5, 1.]]
+    # print(bfm.segment_intersects_3D_plane(a, b))
