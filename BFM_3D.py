@@ -1,5 +1,6 @@
 import numpy as np
 import bfm
+import bfm_characterization as bc
 import h5py
 import time
 from mayavi import mlab
@@ -10,7 +11,7 @@ import moviepy.editor as mpy
 #matrix monomer 0 == empty, 1 == A, 2 == T, 3 == C, 4 == G
 #covalent bond == 1, hydrogen == 2
 
-run = 1
+run = 2
 
 # name_file_initial_matrix = "/Users/marcosmasukawa/Documents/BFM_Simulation/empirical/2_pipeline/" + time.strftime(
 #     "%Y%m%d-%H%M%S") + "small_initial_config"
@@ -20,13 +21,14 @@ run = 1
 name_file_initial_matrix = "/Users/marcosmasukawa/Documents/BFM_Simulation/empirical/2_pipeline/" + str(run) + "initial_config"
 name_file_equilibrated_matrix = "/Users/marcosmasukawa/Documents/BFM_Simulation/empirical/2_pipeline/" + str(run) + "equilibrated_config"
 
+
 def generates_equilibrated_config():
 
 
 
     box_dimension = 128
-    particle_number = 15
-    equilibration_steps = 100
+    particle_number = 150
+    equilibration_steps = 10000
 
 
     #creates the box and places the particles in ordered position
@@ -45,28 +47,32 @@ def generates_equilibrated_config():
         hf.create_dataset("equilibrated_config", data=molecules_matrix)
     bfm.plots_bonds(molecules_matrix)
 
+
+
 if __name__ == '__main__':
 
-    MCS_steps = 10000
+    MCS_steps = 1000
 
     # generates_equilibrated_config()
 
-    f = h5py.File("/Users/marcosmasukawa/Documents/BFM_Simulation/empirical/2_pipeline/1equilibrated_config", "r")
+    #small one (3 molecules)
+    f = h5py.File("/Users/marcosmasukawa/Documents/BFM_Simulation/empirical/2_pipeline/1small_equilibrated_config", "r")
     molecules_matrix = f.get("equilibrated_config").value
+
+    # bfm.plots_bonds(molecules_matrix)
+    # bc.size_distribution(molecules_matrix)
 
 
     #when only does simulation and shoes results
     for i in range(MCS_steps):
         print(i)
         molecules_matrix = bfm.update_system_with_bonds(molecules_matrix)
+        bc.size_distribution(molecules_matrix)
     bfm.plots_bonds(molecules_matrix)
-
-
 
     # when show animation in real time
     # bfm.animates(molecules_matrix, MCS_steps)
 
-    # generates_equilibrated_config()
 
     #TODO: make video of the time evolution and then stitch it together so it can be plotted
     #depending on the monomer density, simplify each cell into only 4 x 4 x 4 units

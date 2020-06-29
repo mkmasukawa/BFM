@@ -527,6 +527,7 @@ def update_positions_bonds(bond_matrix, i, j, k):
                                                                           chosen_type2[1] - new_j,
                                                                           chosen_type2[2] - new_k)]) + str(2)
                         for c_m in current_mon:
+                            #if bonded to type 3, delete these monomers
                             if str(bond_matrix[new_i + c_m[0], new_j + c_m[1], new_k + c_m[2]])[-1] == "3":
                                 bond_matrix[new_i + c_m[0], new_j + c_m[1], new_k + c_m[2]] = 0
                             else:
@@ -554,6 +555,7 @@ def update_positions_bonds(bond_matrix, i, j, k):
                         # print(bonded_neighbor)
                         # save dict to the matrix
                         bond_matrix[chosen_type2] = int(bonded_neighbor)
+                        # bond_matrix[]
                         # delete the other monomers
 
                         # break bonds to type 3 of the types 2 that were bonded
@@ -868,7 +870,7 @@ def creates_box(m, n):
 
     # guarantee that the number of particles is specified but warns that the density of particle is too high
     particle_count = 0
-    trial_max_times = 100
+    trial_max_times = 1000
     trial_count = 0
     while particle_count < n:
         print(particle_count)
@@ -887,3 +889,5 @@ def creates_box(m, n):
     # test_m[3, 3, 3] = 12001
     # test_m[5, 3, 3] = 1
     return test_m
+
+
