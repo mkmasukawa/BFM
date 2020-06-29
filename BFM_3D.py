@@ -17,16 +17,16 @@ run = 1
 # name_file_equilibrated_matrix = "/Users/marcosmasukawa/Documents/BFM_Simulation/empirical/2_pipeline/" + time.strftime(
 #     "%Y%m%d-%H%M%S") + "small_equilibrated_config"
 
-name_file_initial_matrix = "/Users/marcosmasukawa/Documents/BFM_Simulation/empirical/2_pipeline/" + str(run) + "small_initial_config"
-name_file_equilibrated_matrix = "/Users/marcosmasukawa/Documents/BFM_Simulation/empirical/2_pipeline/" + str(run) + "small_equilibrated_config"
+name_file_initial_matrix = "/Users/marcosmasukawa/Documents/BFM_Simulation/empirical/2_pipeline/" + str(run) + "initial_config"
+name_file_equilibrated_matrix = "/Users/marcosmasukawa/Documents/BFM_Simulation/empirical/2_pipeline/" + str(run) + "equilibrated_config"
 
 def generates_equilibrated_config():
 
 
 
-    box_dimension = 20
-    particle_number = 3
-    equilibration_steps = 10000
+    box_dimension = 128
+    particle_number = 15
+    equilibration_steps = 100
 
 
     #creates the box and places the particles in ordered position
@@ -49,27 +49,25 @@ if __name__ == '__main__':
 
     MCS_steps = 10000
 
-    f = h5py.File("/Users/marcosmasukawa/Documents/BFM_Simulation/empirical/2_pipeline/1small_equilibrated_config", "r")
+    # generates_equilibrated_config()
+
+    f = h5py.File("/Users/marcosmasukawa/Documents/BFM_Simulation/empirical/2_pipeline/1equilibrated_config", "r")
     molecules_matrix = f.get("equilibrated_config").value
 
 
     #when only does simulation and shoes results
-    # for i in range(MCS_steps):
-    #     molecules_matrix = bfm.update_system_with_bonds(molecules_matrix)
-    # bfm.plots_bonds(molecules_matrix)
-    #
+    for i in range(MCS_steps):
+        print(i)
+        molecules_matrix = bfm.update_system_with_bonds(molecules_matrix)
+    bfm.plots_bonds(molecules_matrix)
+
+
+
     # when show animation in real time
-    bfm.animates(molecules_matrix, MCS_steps)
+    # bfm.animates(molecules_matrix, MCS_steps)
 
     # generates_equilibrated_config()
 
     #TODO: make video of the time evolution and then stitch it together so it can be plotted
     #depending on the monomer density, simplify each cell into only 4 x 4 x 4 units
 
-
-    # a = [[1.,1.,0],[0.,5.,3.]]
-    # b = [[0.,0.,0],[5.,3.,0], [0.,4.,0]]
-    #
-    # # l = [[10, 0.5, 0.5], [3, 0.5, 0.5]]
-    # # p = [[1.2, 0.0, 0.], [2.2, 1.0, 0.], [2.8, 0.5, 1.]]
-    # print(bfm.segment_intersects_3D_plane(a, b))

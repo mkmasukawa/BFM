@@ -8,7 +8,7 @@ import shapely.geometry as sg
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-random.seed(300)
+random.seed(400)
 
 
 def generates_vectors():
@@ -297,7 +297,7 @@ def bond_cross_bond(bond_matrix, point1, point2):
 
     for l_e in list_bonds_to_examinate:
         if segments_intersect((point1, point2), l_e):
-        # if segment_intersects_3D_plane((point1, point2), l_e):
+            # if segment_intersects_3D_plane((point1, point2), l_e):
             return True
     return False
 
@@ -411,20 +411,7 @@ def update_positions_bonds(bond_matrix, i, j, k):
                     if there_is_space_for_breaking_bond == True:
                         # calculate probability
 
-                        #checks if cross other bonds, if crosses, gives up on the movement
 
-
-                        # #if there are no options that can not create new bonds,
-                        # type_3_for_new = random.choice(tuple(spaces_around_new))
-                        # if type_3_for_new in spaces_around_bonded_to:
-                        #     spaces_around_bonded_to.remove(type_3_for_new)
-                        # type_3_for_bonded_to = random.choice(tuple(spaces_around_bonded_to))
-                        #
-                        # #does not cross bonds
-                        # if (bond_cross_bond(bond_matrix, (new_i, new_j, new_k), type_3_for_new)== False) and \
-                        #         (bond_cross_bond(bond_matrix, bonded_to_coordinates, type_3_for_bonded_to) == False):
-
-                        #if there are no options that can not create new bonds,
                         there_is_non_crossing_option = False
 
                         for_new_list = list(spaces_around_new)
@@ -432,8 +419,8 @@ def update_positions_bonds(bond_matrix, i, j, k):
                         for_bonded_list = list(spaces_around_bonded_to)
                         random.shuffle(for_bonded_list)
 
-                        type_3_for_new = (0,0,0)
-                        type_3_for_bonded_to = (0,0,0)
+                        type_3_for_new = (0, 0, 0)
+                        type_3_for_bonded_to = (0, 0, 0)
 
                         try:
                             for n_l in for_new_list:
@@ -446,8 +433,8 @@ def update_positions_bonds(bond_matrix, i, j, k):
                             type_3_for_new = n_l
                             type_3_for_bonded_to = b_l
 
-                        #does not cross bonds
-                        if type_3_for_new != (0,0,0) and type_3_for_bonded_to != (0,0,0):
+                        # does not cross bonds
+                        if type_3_for_new != (0, 0, 0) and type_3_for_bonded_to != (0, 0, 0):
 
                             # create bond from 2 to 3 type monomer and break bond 2-2
                             # add the type of monomer
@@ -845,3 +832,58 @@ def segment_intersects_3D_plane(segment, plane):
                 return True
             else:
                 return False
+
+
+def creates_box(m, n):
+    test_m = np.zeros((m, m, m), dtype=int)
+
+    # avoid superposition of monomers during creation
+    def particle(i, j, k):
+        # it should be within limits of the matrix
+        if 6 < i < m - 6 and 6 < j < m - 6 and 6 < k < m - 6:
+            # it should not invade the exclusion space of other polymers
+            # if invades_exclusion_space
+            if invades_exclusion_space(test_m, i, j, k):
+                test_m[i, j, k] = 1002106110601
+                test_m[i - 2, j + 2, k - 1] = 105710601
+                test_m[i - 4, j + 4, k - 2] = 105710602
+                test_m[i - 6, j + 6, k - 3] = 10573
+                test_m[i - 2, j - 2, k + 1] = 105610611
+                test_m[i - 4, j - 4, k + 2] = 105610612
+                test_m[i - 6, j - 6, k + 3] = 10563
+                test_m[i, j + 2, k] = 100310021
+                test_m[i, j + 4, k] = 100310022
+                test_m[i, j + 6, k] = 10033
+                return True
+            else:
+                return False
+        else:
+            return False
+        # else:
+        #     raise Exception("Values outside matrix")
+
+    x = list(range(len(test_m)))
+    y = list(range(len(test_m[0])))
+    z = list(range(len(test_m[0][0])))
+
+    # guarantee that the number of particles is specified but warns that the density of particle is too high
+    particle_count = 0
+    trial_max_times = 100
+    trial_count = 0
+    while particle_count < n:
+        print(particle_count)
+        trial_count += 1
+        x_random = random.choice(x)
+        y_random = random.choice(y)
+        z_random = random.choice(z)
+        if test_m[x_random, y_random, z_random] == 0:
+            if particle(x_random, y_random, z_random) == True:
+                particle_count += 1
+        if trial_count > trial_max_times:
+            raise Exception("Could not generate required number of particles, try again or decrease density")
+    # print(DICT_VECTOR_TO_INT)
+    # print(DICT_VECTOR_TO_INT[(0, -2, 0)])
+    #
+    # test_m[3, 3, 3] = 12001
+    # test_m[5, 3, 3] = 1
+    return test_m
