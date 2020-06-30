@@ -373,192 +373,198 @@ def update_positions_bonds(bond_matrix, i, j, k):
                 # can not bond again to type 2 if already bonded, but can break the bond
                 if bonded_to_type_2 == True:
                     print("already bonded to type 2")
-                    # calculate probability to break
-                    # check if there are free spaces around the double bond to create the type 3 monomers
-                    spaces_around_new = set()
-                    spaces_around_bonded_to = set()
-                    for v in VECTORS:
-                        if 0 <= new_i + v[0] < len(bond_matrix) \
-                                and 0 <= new_j + v[1] < len(bond_matrix[0]) \
-                                and 0 <= new_k + v[2] < len(bond_matrix[0][0]):
-                            if bond_matrix[new_i + v[0], new_j + v[1], new_k + v[2]] == 0:
-                                spaces_around_new.add((new_i + v[0], new_j + v[1], new_k + v[2]))
-                        if 0 <= bonded_to_coordinates[0] + v[0] < len(bond_matrix) \
-                                and 0 <= bonded_to_coordinates[1] + v[1] < len(bond_matrix[0]) \
-                                and 0 <= bonded_to_coordinates[2] + v[2] < len(bond_matrix[0][0]):
-                            if bond_matrix[bonded_to_coordinates[0] + v[0], bonded_to_coordinates[1] + v[1],
-                                           bonded_to_coordinates[2] + v[2]] == 0:
-                                spaces_around_bonded_to.add((bonded_to_coordinates[0] + v[0],
-                                                             bonded_to_coordinates[1] + v[1],
-                                                             bonded_to_coordinates[2] + v[2]))
-                    # check if in the two lists there are places for the type 3 monomers
-                    # check values in common, if they are more than 2 there is space
-                    # if there is less than 2, substract the common set and see if th
-                    inter = spaces_around_new.intersection(spaces_around_bonded_to)
-                    new_exclusive = spaces_around_new.difference(spaces_around_bonded_to)
-                    bonded_to_exclusive = spaces_around_bonded_to.difference(spaces_around_new)
-                    there_is_space_for_breaking_bond = False
-                    if len(inter) >= 2:
-                        # there is space, break bonds
-                        there_is_space_for_breaking_bond = True
-                    else:
-                        if len(new_exclusive) >= 1 or len(bonded_to_exclusive) >= 1:
+                    p_break = 0.06
+                    x = random.random()
+                    if x < p_break:
+                        # calculate probability to break
+                        # check if there are free spaces around the double bond to create the type 3 monomers
+                        spaces_around_new = set()
+                        spaces_around_bonded_to = set()
+                        for v in VECTORS:
+                            if 0 <= new_i + v[0] < len(bond_matrix) \
+                                    and 0 <= new_j + v[1] < len(bond_matrix[0]) \
+                                    and 0 <= new_k + v[2] < len(bond_matrix[0][0]):
+                                if bond_matrix[new_i + v[0], new_j + v[1], new_k + v[2]] == 0:
+                                    spaces_around_new.add((new_i + v[0], new_j + v[1], new_k + v[2]))
+                            if 0 <= bonded_to_coordinates[0] + v[0] < len(bond_matrix) \
+                                    and 0 <= bonded_to_coordinates[1] + v[1] < len(bond_matrix[0]) \
+                                    and 0 <= bonded_to_coordinates[2] + v[2] < len(bond_matrix[0][0]):
+                                if bond_matrix[bonded_to_coordinates[0] + v[0], bonded_to_coordinates[1] + v[1],
+                                               bonded_to_coordinates[2] + v[2]] == 0:
+                                    spaces_around_bonded_to.add((bonded_to_coordinates[0] + v[0],
+                                                                 bonded_to_coordinates[1] + v[1],
+                                                                 bonded_to_coordinates[2] + v[2]))
+                        # check if in the two lists there are places for the type 3 monomers
+                        # check values in common, if they are more than 2 there is space
+                        # if there is less than 2, substract the common set and see if th
+                        inter = spaces_around_new.intersection(spaces_around_bonded_to)
+                        new_exclusive = spaces_around_new.difference(spaces_around_bonded_to)
+                        bonded_to_exclusive = spaces_around_bonded_to.difference(spaces_around_new)
+                        there_is_space_for_breaking_bond = False
+                        if len(inter) >= 2:
                             # there is space, break bonds
                             there_is_space_for_breaking_bond = True
                         else:
-                            # no space
-                            there_is_space_for_breaking_bond = False
-                    if there_is_space_for_breaking_bond == True:
-                        # calculate probability
+                            if len(new_exclusive) >= 1 or len(bonded_to_exclusive) >= 1:
+                                # there is space, break bonds
+                                there_is_space_for_breaking_bond = True
+                            else:
+                                # no space
+                                there_is_space_for_breaking_bond = False
+                        if there_is_space_for_breaking_bond == True:
+                            # calculate probability
 
 
-                        there_is_non_crossing_option = False
+                            there_is_non_crossing_option = False
 
-                        for_new_list = list(spaces_around_new)
-                        random.shuffle(for_new_list)
-                        for_bonded_list = list(spaces_around_bonded_to)
-                        random.shuffle(for_bonded_list)
+                            for_new_list = list(spaces_around_new)
+                            random.shuffle(for_new_list)
+                            for_bonded_list = list(spaces_around_bonded_to)
+                            random.shuffle(for_bonded_list)
 
-                        type_3_for_new = (0, 0, 0)
-                        type_3_for_bonded_to = (0, 0, 0)
+                            type_3_for_new = (0, 0, 0)
+                            type_3_for_bonded_to = (0, 0, 0)
 
-                        try:
-                            for n_l in for_new_list:
-                                for b_l in for_bonded_list:
-                                    if n_l != b_l:
-                                        if bond_cross_bond(bond_matrix, (i, j, k), n_l) == False:
-                                            if bond_cross_bond(bond_matrix, (new_i, new_j, new_k), b_l) == False:
-                                                raise Found
-                        except Found:
-                            type_3_for_new = n_l
-                            type_3_for_bonded_to = b_l
+                            try:
+                                for n_l in for_new_list:
+                                    for b_l in for_bonded_list:
+                                        if n_l != b_l:
+                                            if bond_cross_bond(bond_matrix, (i, j, k), n_l) == False:
+                                                if bond_cross_bond(bond_matrix, (new_i, new_j, new_k), b_l) == False:
+                                                    raise Found
+                            except Found:
+                                type_3_for_new = n_l
+                                type_3_for_bonded_to = b_l
 
-                        # does not cross bonds
-                        if type_3_for_new != (0, 0, 0) and type_3_for_bonded_to != (0, 0, 0):
+                            # does not cross bonds
+                            if type_3_for_new != (0, 0, 0) and type_3_for_bonded_to != (0, 0, 0):
 
-                            # create bond from 2 to 3 type monomer and break bond 2-2
-                            # add the type of monomer
-                            current_mon["type"] = 2
-                            # deletes de 2-2 bond
-                            del current_mon[(bonded_to_coordinates[0] - new_i,
-                                             bonded_to_coordinates[1] - new_j,
-                                             bonded_to_coordinates[2] - new_k)]
-                            # creates the 2-3 bond
-                            current_mon[
-                                (type_3_for_new[0] - new_i, type_3_for_new[1] - new_j, type_3_for_new[2] - new_k)] = 3
+                                # create bond from 2 to 3 type monomer and break bond 2-2
+                                # add the type of monomer
+                                current_mon["type"] = 2
+                                # deletes de 2-2 bond
+                                del current_mon[(bonded_to_coordinates[0] - new_i,
+                                                 bonded_to_coordinates[1] - new_j,
+                                                 bonded_to_coordinates[2] - new_k)]
+                                # creates the 2-3 bond
+                                current_mon[
+                                    (type_3_for_new[0] - new_i, type_3_for_new[1] - new_j, type_3_for_new[2] - new_k)] = 3
 
-                            bond_matrix[new_i, new_j, new_k] = dict_to_int(current_mon)
+                                bond_matrix[new_i, new_j, new_k] = dict_to_int(current_mon)
 
-                            bonded_to_dict = split_info(bond_matrix[bonded_to_coordinates], bonded_to_coordinates[0],
-                                                        bonded_to_coordinates[1], bonded_to_coordinates[2])
-                            # deletes the 2-2 bond
-                            del bonded_to_dict[(-bonded_to_coordinates[0] + new_i, -bonded_to_coordinates[1] + new_j,
-                                                -bonded_to_coordinates[2] + new_k)]
-                            # print("check difference", type_3_for_bonded_to, bonded_to_coordinates)
-                            # creates the 2-3 bond
+                                bonded_to_dict = split_info(bond_matrix[bonded_to_coordinates], bonded_to_coordinates[0],
+                                                            bonded_to_coordinates[1], bonded_to_coordinates[2])
+                                # deletes the 2-2 bond
+                                del bonded_to_dict[(-bonded_to_coordinates[0] + new_i, -bonded_to_coordinates[1] + new_j,
+                                                    -bonded_to_coordinates[2] + new_k)]
+                                # print("check difference", type_3_for_bonded_to, bonded_to_coordinates)
+                                # creates the 2-3 bond
 
-                            # why this had to be deleted??
-                            bonded_to_dict[(type_3_for_bonded_to[0] - bonded_to_coordinates[0],
-                                            type_3_for_bonded_to[1] - bonded_to_coordinates[1],
-                                            type_3_for_bonded_to[2] - bonded_to_coordinates[2])] = 3
-                            bond_matrix[bonded_to_coordinates] = dict_to_int(bonded_to_dict)
-                            print("finished unbonding")
-                            # remove the  bond 2-2
+                                # why this had to be deleted??
+                                bonded_to_dict[(type_3_for_bonded_to[0] - bonded_to_coordinates[0],
+                                                type_3_for_bonded_to[1] - bonded_to_coordinates[1],
+                                                type_3_for_bonded_to[2] - bonded_to_coordinates[2])] = 3
+                                bond_matrix[bonded_to_coordinates] = dict_to_int(bonded_to_dict)
+                                print("finished unbonding")
+                                # remove the  bond 2-2
 
-                            # create bond from 3 to 2 type monomer
-                            # print( int(str(3)  + str(DICT_VECTOR_TO_INT[(new_i - type_3_for_new[0],
-                            #                                           new_j - type_3_for_new[1],
-                            #                                           new_k - type_3_for_new[2])]).zfill(3) + str(3)))
-                            bond_matrix[type_3_for_new] = \
-                                int(str(3) + str(DICT_VECTOR_TO_INT[(new_i - type_3_for_new[0],
-                                                                     new_j - type_3_for_new[1],
-                                                                     new_k - type_3_for_new[2])]).zfill(3) + str(3))
-                            # print(int(str(3)  + str(DICT_VECTOR_TO_INT[(bonded_to_coordinates[0] - type_3_for_bonded_to[0],
-                            #                                           bonded_to_coordinates[1] - type_3_for_bonded_to[1],
-                            #                                           bonded_to_coordinates[2] - type_3_for_bonded_to[2])]).zfill(3) + str(3)))
-                            bond_matrix[type_3_for_bonded_to] = \
-                                int(str(3) + str(DICT_VECTOR_TO_INT[(bonded_to_coordinates[0] - type_3_for_bonded_to[0],
-                                                                     bonded_to_coordinates[1] - type_3_for_bonded_to[1],
-                                                                     bonded_to_coordinates[2] - type_3_for_bonded_to[
-                                                                         2])]).zfill(3) + str(3))
-                        else:
-                            print("All type 3 options crosses bonds")
+                                # create bond from 3 to 2 type monomer
+                                # print( int(str(3)  + str(DICT_VECTOR_TO_INT[(new_i - type_3_for_new[0],
+                                #                                           new_j - type_3_for_new[1],
+                                #                                           new_k - type_3_for_new[2])]).zfill(3) + str(3)))
+                                bond_matrix[type_3_for_new] = \
+                                    int(str(3) + str(DICT_VECTOR_TO_INT[(new_i - type_3_for_new[0],
+                                                                         new_j - type_3_for_new[1],
+                                                                         new_k - type_3_for_new[2])]).zfill(3) + str(3))
+                                # print(int(str(3)  + str(DICT_VECTOR_TO_INT[(bonded_to_coordinates[0] - type_3_for_bonded_to[0],
+                                #                                           bonded_to_coordinates[1] - type_3_for_bonded_to[1],
+                                #                                           bonded_to_coordinates[2] - type_3_for_bonded_to[2])]).zfill(3) + str(3)))
+                                bond_matrix[type_3_for_bonded_to] = \
+                                    int(str(3) + str(DICT_VECTOR_TO_INT[(bonded_to_coordinates[0] - type_3_for_bonded_to[0],
+                                                                         bonded_to_coordinates[1] - type_3_for_bonded_to[1],
+                                                                         bonded_to_coordinates[2] - type_3_for_bonded_to[
+                                                                             2])]).zfill(3) + str(3))
+                            else:
+                                print("All type 3 options crosses bonds")
 
 
                 # not bonded to type 2 yet
                 # need to check if the candidate is not bonded already
                 else:
-                    # calculate probability to bond
-                    # check is there is a type 2 nearby
-                    neighbors_type2 = []
-                    for v in VECTORS:
-                        neighbor_i = new_i + v[0]
-                        neighbor_j = new_j + v[1]
-                        neighbor_k = new_k + v[2]
-                        if 0 <= neighbor_i < len(bond_matrix) and 0 <= neighbor_j < len(bond_matrix[0]) and \
-                                0 <= neighbor_k < len(bond_matrix[0][0]):
-                            neighbor_mon = split_info(bond_matrix[neighbor_i, neighbor_j, neighbor_k], neighbor_i,
-                                                      neighbor_j, neighbor_k)
-                            if neighbor_mon["type"] == 2:
-                                del neighbor_mon["type"]
-                                bonded_to_type_2 = False
-                                for b_n_m in neighbor_mon:
-                                    if str(bond_matrix[
-                                               neighbor_i + b_n_m[0], neighbor_j + b_n_m[1],
-                                               neighbor_k + b_n_m[2]])[-1] == "2":
-                                        bonded_to_type_2 = True
-                                if bonded_to_type_2 == False:
-                                    neighbors_type2.append((neighbor_i, neighbor_j, neighbor_k))
-                                    print("there is available neighbor type 2")
-                            # if neighbor_mon["type"] == 3:
-                            #     neighbors_type3.append((neighbor_i, neighbor_j, neighbor_k))
-                            #     print("there is neighbor type 3")
-                            # make a bond
-                            # maybe there is more than one neighbor type 2, in this case one is randomly chosen
-                    # there are neigbors type 2 that can be bonded to
-                    if neighbors_type2:
-                        chosen_type2 = random.choice(neighbors_type2)
-                        # remove the monomers type 3 connected to
+                    p_bond = 0.94
+                    x = random.random()
+                    if x < p_bond:
+                        # calculate probability to bond
+                        # check is there is a type 2 nearby
+                        neighbors_type2 = []
+                        for v in VECTORS:
+                            neighbor_i = new_i + v[0]
+                            neighbor_j = new_j + v[1]
+                            neighbor_k = new_k + v[2]
+                            if 0 <= neighbor_i < len(bond_matrix) and 0 <= neighbor_j < len(bond_matrix[0]) and \
+                                    0 <= neighbor_k < len(bond_matrix[0][0]):
+                                neighbor_mon = split_info(bond_matrix[neighbor_i, neighbor_j, neighbor_k], neighbor_i,
+                                                          neighbor_j, neighbor_k)
+                                if neighbor_mon["type"] == 2:
+                                    del neighbor_mon["type"]
+                                    bonded_to_type_2 = False
+                                    for b_n_m in neighbor_mon:
+                                        if str(bond_matrix[
+                                                   neighbor_i + b_n_m[0], neighbor_j + b_n_m[1],
+                                                   neighbor_k + b_n_m[2]])[-1] == "2":
+                                            bonded_to_type_2 = True
+                                    if bonded_to_type_2 == False:
+                                        neighbors_type2.append((neighbor_i, neighbor_j, neighbor_k))
+                                        print("there is available neighbor type 2")
+                                # if neighbor_mon["type"] == 3:
+                                #     neighbors_type3.append((neighbor_i, neighbor_j, neighbor_k))
+                                #     print("there is neighbor type 3")
+                                # make a bond
+                                # maybe there is more than one neighbor type 2, in this case one is randomly chosen
+                        # there are neigbors type 2 that can be bonded to
+                        if neighbors_type2:
+                            chosen_type2 = random.choice(neighbors_type2)
+                            # remove the monomers type 3 connected to
 
-                        print(DICT_VECTOR_TO_INT)
+                            print(DICT_VECTOR_TO_INT)
 
-                        # save from dict to the matrix
-                        bonded_current = str(3) + str(DICT_VECTOR_TO_INT[(chosen_type2[0] - new_i,
-                                                                          chosen_type2[1] - new_j,
-                                                                          chosen_type2[2] - new_k)]) + str(2)
-                        for c_m in current_mon:
-                            #if bonded to type 3, delete these monomers
-                            if str(bond_matrix[new_i + c_m[0], new_j + c_m[1], new_k + c_m[2]])[-1] == "3":
-                                bond_matrix[new_i + c_m[0], new_j + c_m[1], new_k + c_m[2]] = 0
-                            else:
-                                bonded_current = str(current_mon[c_m]) + str(DICT_VECTOR_TO_INT[c_m]).zfill(3) \
-                                                 + bonded_current
-                                # remove also from the perspective of type 3
+                            # save from dict to the matrix
+                            bonded_current = str(3) + str(DICT_VECTOR_TO_INT[(chosen_type2[0] - new_i,
+                                                                              chosen_type2[1] - new_j,
+                                                                              chosen_type2[2] - new_k)]) + str(2)
+                            for c_m in current_mon:
+                                #if bonded to type 3, delete these monomers
+                                if str(bond_matrix[new_i + c_m[0], new_j + c_m[1], new_k + c_m[2]])[-1] == "3":
+                                    bond_matrix[new_i + c_m[0], new_j + c_m[1], new_k + c_m[2]] = 0
+                                else:
+                                    bonded_current = str(current_mon[c_m]) + str(DICT_VECTOR_TO_INT[c_m]).zfill(3) \
+                                                     + bonded_current
+                                    # remove also from the perspective of type 3
 
-                        # print(bonded_current)
-                        bond_matrix[new_i, new_j, new_k] = int(bonded_current)
-                        bond_to_dict = split_info(bond_matrix[chosen_type2[0], chosen_type2[1],
-                                                              chosen_type2[2]], chosen_type2[0],
-                                                  chosen_type2[1], chosen_type2[2])
-                        del bond_to_dict["type"]
-                        bonded_neighbor = str(3) + str(DICT_VECTOR_TO_INT[(-chosen_type2[0] + new_i,
-                                                                           -chosen_type2[1] + new_j,
-                                                                           -chosen_type2[2] + new_k)]) + str(2)
-                        for d in bond_to_dict:
-                            # print(chosen_type2, d)
-                            if str(bond_matrix[chosen_type2[0] + d[0], chosen_type2[1] + d[1],
-                                               chosen_type2[2] + d[2]])[-1] == "3":
-                                bond_matrix[chosen_type2[0] + d[0], chosen_type2[1] + d[1], chosen_type2[2] + d[2]] = 0
-                            else:
-                                bonded_neighbor = str(bond_to_dict[d]) \
-                                                  + str(DICT_VECTOR_TO_INT[d]).zfill(3) + bonded_neighbor
-                        # print(bonded_neighbor)
-                        # save dict to the matrix
-                        bond_matrix[chosen_type2] = int(bonded_neighbor)
-                        # bond_matrix[]
-                        # delete the other monomers
+                            # print(bonded_current)
+                            bond_matrix[new_i, new_j, new_k] = int(bonded_current)
+                            bond_to_dict = split_info(bond_matrix[chosen_type2[0], chosen_type2[1],
+                                                                  chosen_type2[2]], chosen_type2[0],
+                                                      chosen_type2[1], chosen_type2[2])
+                            del bond_to_dict["type"]
+                            bonded_neighbor = str(3) + str(DICT_VECTOR_TO_INT[(-chosen_type2[0] + new_i,
+                                                                               -chosen_type2[1] + new_j,
+                                                                               -chosen_type2[2] + new_k)]) + str(2)
+                            for d in bond_to_dict:
+                                # print(chosen_type2, d)
+                                if str(bond_matrix[chosen_type2[0] + d[0], chosen_type2[1] + d[1],
+                                                   chosen_type2[2] + d[2]])[-1] == "3":
+                                    bond_matrix[chosen_type2[0] + d[0], chosen_type2[1] + d[1], chosen_type2[2] + d[2]] = 0
+                                else:
+                                    bonded_neighbor = str(bond_to_dict[d]) \
+                                                      + str(DICT_VECTOR_TO_INT[d]).zfill(3) + bonded_neighbor
+                            # print(bonded_neighbor)
+                            # save dict to the matrix
+                            bond_matrix[chosen_type2] = int(bonded_neighbor)
+                            # bond_matrix[]
+                            # delete the other monomers
 
-                        # break bonds to type 3 of the types 2 that were bonded
+                            # break bonds to type 3 of the types 2 that were bonded
 
                 # breaking bond
                 # if a bond is broken between 2 type 2, check if there is space for creating type 3 monomers that c

@@ -68,6 +68,7 @@ def size_distribution(bond_matrix):
         size_of_polymer.append(recursive_find_branches(list_of_bonds, monomer1))
 
     print(size_of_polymer)
+    return size_of_polymer
 
 
 
